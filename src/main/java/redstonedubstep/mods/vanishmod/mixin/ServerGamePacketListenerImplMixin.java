@@ -6,7 +6,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import redstonedubstep.mods.vanishmod.misc.FieldHolder;
@@ -19,13 +19,13 @@ public class ServerGamePacketListenerImplMixin {
 
 	//Stores the player that is about to leave the server and get removed from the regular player list
 	@Inject(method = "onDisconnect", at = @At("HEAD"))
-	private void vanishmod$onStartDisconnect(Component reason, CallbackInfo callbackInfo) {
+	private void vanishmod$onStartDisconnect(DisconnectionDetails details, CallbackInfo callbackInfo) {
 		FieldHolder.leavingPlayer = player;
 	}
 
 	//Removes the stored player after it has fully left the server
 	@Inject(method = "onDisconnect", at = @At("TAIL"))
-	private void vanishmod$onFinishDisconnect(Component reason, CallbackInfo callbackInfo) {
+	private void vanishmod$onFinishDisconnect(DisconnectionDetails details, CallbackInfo callbackInfo) {
 		FieldHolder.leavingPlayer = null;
 		TraceHandler.setTracing(player, false);
 	}

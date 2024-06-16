@@ -93,10 +93,10 @@ public class VanishEventListener {
 			SoundSuppressionHelper.updateEntityHitResult(player, event.getTarget());
 	}
 
-	@SubscribeEvent
+	@SubscribeEvent(priority = EventPriority.LOW)
 	public static void onChangeTarget(LivingChangeTargetEvent event) {
 		if (VanishConfig.CONFIG.hidePlayersFromWorld.get()) {
-			if (event.getNewTarget() instanceof ServerPlayer player && VanishUtil.isVanished(player))
+			if (event.getNewAboutToBeSetTarget() instanceof ServerPlayer player && VanishUtil.isVanished(player))
 				event.setCanceled(true);
 		}
 	}
