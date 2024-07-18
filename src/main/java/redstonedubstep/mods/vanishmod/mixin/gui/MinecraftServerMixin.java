@@ -43,7 +43,7 @@ public abstract class MinecraftServerMixin {
 	private void vanishmod$onBuildServerStatus(CallbackInfo callbackInfo) {
 		if (VanishConfig.CONFIG.hidePlayersFromPlayerLists.get()) {
 			PlayerList list = getPlayerList();
-			List<ServerPlayer> unvanishedPlayers = VanishUtil.formatPlayerList(list.getPlayers(), null);
+			List<ServerPlayer> unvanishedPlayers = VanishUtil.removeVanishedFromPlayerList(list.getPlayers(), null);
 			int unvanishedPlayerCount = unvanishedPlayers.size();
 			int maxPlayers = list.getMaxPlayers();
 			ServerStatus mainServerStatus = status;

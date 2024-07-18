@@ -69,9 +69,9 @@ public class VanishCommand {
 
 			vanish(ctx, player);
 		}
-		else if (VanishUtil.removeFromQueue(playerName))
+		else if (VanishingHandler.removeFromQueue(playerName))
 			ctx.getSource().sendSuccess(() -> VanishUtil.VANISHMOD_PREFIX.copy().append(String.format("Removed %s from the vanishing queue", playerName)), true);
-		else if (VanishUtil.addToQueue(playerName))
+		else if (VanishingHandler.addToQueue(playerName))
 			ctx.getSource().sendSuccess(() -> VanishUtil.VANISHMOD_PREFIX.copy().append(String.format("Added %s to the vanishing queue", playerName)), true);
 
 		return 1;

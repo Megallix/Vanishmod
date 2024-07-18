@@ -22,6 +22,7 @@ public class VanishConfig {
 		public BooleanValue hidePlayersFromWorld;
 		public BooleanValue hidePlayersFromPlayerLists;
 		public BooleanValue disableCommandTargeting;
+		public BooleanValue hideChatMessages;
 		public BooleanValue hidePlayerNameInChat;
 		public BooleanValue sendFakeJoinLeaveMessages;
 		public BooleanValue fixPlayerDetectionModCompatibility;
@@ -48,8 +49,11 @@ public class VanishConfig {
 			disableCommandTargeting = builder
 					.comment("Should vanished players not be targetable by other players via command selectors (so players that cannot see vanished players cannot target them with e.g. /msg or /give)?")
 					.define("disableCommandTargeting", true);
+			hideChatMessages = builder
+					.comment("Should chat and /teammsg messages from vanished players be hidden for unvanished players?")
+					.define("hideChatMessages", true);
 			hidePlayerNameInChat = builder
-					.comment("When unvanished players receive a chat message from a vanished player, should the name of the player that sent the message be replaced with \"vanished\" (in gray color)?")
+					.comment("When unvanished players receive a message from a vanished player (e.g. a chat or /msg message), should the name of the player that sent the message be replaced with \"vanished\" (in gray color)?")
 					.define("hidePlayerNameInChat", false);
 			sendFakeJoinLeaveMessages = builder
 					.comment("Should players see a fake join/leave message in their chat when another player (un-)vanishes?")

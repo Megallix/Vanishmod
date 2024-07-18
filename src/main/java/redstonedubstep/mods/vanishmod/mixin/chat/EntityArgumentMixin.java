@@ -1,5 +1,6 @@
 package redstonedubstep.mods.vanishmod.mixin.chat;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class EntityArgumentMixin {
 	@ModifyVariable(method = "getEntities", at = @At(value = "INVOKE", target = "Ljava/util/Collection;isEmpty()Z", shift = Shift.BEFORE))
 	private static Collection<? extends Entity> vanishmod$modifyEntityList(Collection<? extends Entity> originalList, CommandContext<CommandSourceStack> context) {
 		if (VanishConfig.CONFIG.disableCommandTargeting.get() && context.getSource().getEntity() != null) //only filter commands from players, not command blocks/console/datapacks
-			originalList = VanishUtil.formatEntityList(originalList.stream().toList(), context.getSource().getEntity());
+			originalList = VanishUtil.removeVanishedFromEntityList(new ArrayList<>(originalList), context.getSource().getEntity());
 
 		return originalList;
 	}
@@ -32,7 +33,7 @@ public class EntityArgumentMixin {
 	@ModifyVariable(method = "getPlayers", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z", shift = Shift.BEFORE))
 	private static List<ServerPlayer> vanishmod$modifyPlayerList(List<ServerPlayer> originalList, CommandContext<CommandSourceStack> context) {
 		if (VanishConfig.CONFIG.disableCommandTargeting.get() && context.getSource().getEntity() != null) //only filter commands from players, not command blocks/console/datapacks
-			originalList = VanishUtil.formatPlayerList(originalList, context.getSource().getEntity());
+			originalList = VanishUtil.removeVanishedFromPlayerList(originalList, context.getSource().getEntity());
 
 		return originalList;
 	}

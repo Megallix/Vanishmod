@@ -13,14 +13,13 @@ import net.minecraft.server.players.PlayerList;
 import redstonedubstep.mods.vanishmod.VanishConfig;
 import redstonedubstep.mods.vanishmod.VanishUtil;
 
-
 @Mixin(ListPlayersCommand.class)
 public class ListPlayersCommandMixin {
 	//Filter result of /list command when non-admins execute it
 	@Redirect(method = "format", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;getPlayers()Ljava/util/List;"))
 	private static List<ServerPlayer> vanishmod$redirectGetPlayers(PlayerList playerList, CommandSourceStack source) {
 		if (VanishConfig.CONFIG.hidePlayersFromPlayerLists.get())
-			return VanishUtil.formatPlayerList(playerList.getPlayers(), source.getEntity());
+			return VanishUtil.removeVanishedFromPlayerList(playerList.getPlayers(), source.getEntity());
 
 		return playerList.getPlayers();
 	}

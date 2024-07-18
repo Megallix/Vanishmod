@@ -74,12 +74,14 @@ public class ServerCommonPacketListenerImplMixin {
 		}
 	}
 
-	//Prevents vanilla join, leave, death and advancement messages of vanished players from being broadcast. Also removes all translation component messages (except for /msg messages) with vanished player references when relevant config is enabled
+	//Prevents vanilla join, leave, death, advancement and command feedback messages of vanished players from being broadcast.
+	//Also removes all translation component messages (except for chat and /msg messages) with vanished player references when relevant config is enabled
 	@Inject(method = "send(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketSendListener;)V", at = @At("HEAD"), cancellable = true)
 	private void vanishmod$onSendPacket(Packet<?> packet, PacketSendListener sendListener, CallbackInfo callbackInfo) {
 		if ((Object)this instanceof ServerGamePacketListenerImpl listener && packet instanceof ClientboundSystemChatPacket chatPacket && chatPacket.content() instanceof MutableComponent component && component.getContents() instanceof TranslatableContents content) {
 			ServerPlayer player = listener.player;
 			List<ServerPlayer> vanishedPlayers = new ArrayList<>(ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers().stream().filter(p -> VanishUtil.isVanished(p, player)).toList());
+			String key = content.getKey();
 			boolean joiningPlayerVanished = VanishUtil.isVanished(FieldHolder.joiningPlayer, player);
 
 			if (joiningPlayerVanished)
@@ -88,9 +90,9 @@ public class ServerCommonPacketListenerImplMixin {
 			if (VanishUtil.isVanished(FieldHolder.leavingPlayer, player))
 				vanishedPlayers.add(FieldHolder.leavingPlayer);
 
-			if (content.getKey().startsWith("multiplayer.player.joined") && joiningPlayerVanished)
+			if (key.startsWith("multiplayer.player.joined") && joiningPlayerVanished)
 				callbackInfo.cancel();
-			else if (content.getKey().startsWith("multiplayer.player.left") || content.getKey().startsWith("death.") || content.getKey().startsWith("chat.type.advancement")) {
+			else if (key.startsWith("multiplayer.player.left") || key.startsWith("death.") || key.startsWith("chat.type.advancement.") || key.startsWith("chat.type.admin")) {
 				if (content.getArgs()[0] instanceof Component playerName) {
 					for (ServerPlayer sender : vanishedPlayers) {
 						if (sender.getDisplayName().getString().equals(playerName.getString()))
@@ -98,7 +100,7 @@ public class ServerCommonPacketListenerImplMixin {
 					}
 				}
 			}
-			else if (!content.getKey().startsWith("commands.message.display.incoming") && VanishConfig.CONFIG.removeModdedSystemMessageReferences.get()) {
+			else if (VanishConfig.CONFIG.removeModdedSystemMessageReferences.get() && !key.startsWith("commands.message.display.incoming") && !key.startsWith("chat.type.")) {
 				for (Object arg : content.getArgs()) {
 					if (arg instanceof Component componentArg) {
 						String potentialPlayerName = componentArg.getString();
