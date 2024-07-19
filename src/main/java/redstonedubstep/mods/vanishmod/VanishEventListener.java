@@ -18,6 +18,7 @@ import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import redstonedubstep.mods.vanishmod.compat.Mc2DiscordCompat;
 import redstonedubstep.mods.vanishmod.misc.FieldHolder;
@@ -33,11 +34,14 @@ public class VanishEventListener {
 	}
 
 	@SubscribeEvent
+	public static void onServerStopped(ServerStoppedEvent event) {
+		VanishUtil.VANISHED_PLAYERS.clear();
+	}
+
+	@SubscribeEvent
 	public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
-		if (event.getEntity() instanceof ServerPlayer player && VanishUtil.isVanished(player)) {
+		if (event.getEntity() instanceof ServerPlayer player && VanishUtil.isVanished(player))
 			player.sendSystemMessage(VanishUtil.VANISHMOD_PREFIX.copy().append("Note: You are currently vanished"));
-			VanishingHandler.updateVanishedPlayerList(player, true);
-		}
 
 		if (event.getEntity().equals(FieldHolder.joiningPlayer))
 			FieldHolder.joiningPlayer = null; //Reset the joiningPlayer field due to it being obsolete at the time the event is fired

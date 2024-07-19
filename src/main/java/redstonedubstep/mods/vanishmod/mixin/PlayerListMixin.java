@@ -27,6 +27,8 @@ public class PlayerListMixin {
 	//Vanishes any unvanished players that are on the vanishing queue. Also acts as a helper for accessing the player that is currently joining the server
 	@Inject(method = "placeNewPlayer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"))
 	public void vanishmod$onSendJoinMessage(Connection networkManager, ServerPlayer player, CommonListenerCookie cookie, CallbackInfo ci) {
+		VanishUtil.recheckVanished(player);
+
 		if (VanishingHandler.removeFromQueue(player.getGameProfile().getName()) && !VanishUtil.isVanished(player))
 			VanishingHandler.toggleVanish(player);
 

@@ -1,6 +1,9 @@
 package redstonedubstep.mods.vanishmod;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.ChatFormatting;
@@ -16,18 +19,33 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.scores.Team;
 
 public class VanishUtil {
+	public static final Set<UUID> VANISHED_PLAYERS = new HashSet<>();
 	public static final MutableComponent VANISHMOD_PREFIX = Component.literal("").append(Component.literal("[").withStyle(ChatFormatting.WHITE)).append(Component.literal("Vanishmod").withStyle(s -> s.applyFormat(ChatFormatting.GRAY).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/vanishmod")))).append(Component.literal("] ").withStyle(ChatFormatting.WHITE));
 
 	public static boolean isVanished(Entity player) {
 		return isVanished(player, null);
 	}
 
-	public static boolean isVanished(Entity player, Entity forPlayer) {
-		if (player instanceof Player && !player.level().isClientSide) {
-			boolean isVanished = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getBoolean("Vanished");
+	public static boolean isVanished(Player player) {
+		return isVanished(player, null);
+	}
+
+	public static boolean isVanished(Entity potentialPlayer, Entity forPlayer) {
+		if (potentialPlayer instanceof Player player)
+			return isVanished(player, forPlayer);
+
+		return false;
+	}
+
+	public static boolean isVanished(Player player, Entity forPlayer) {
+		if (VANISHED_PLAYERS.isEmpty())
+			return false;
+
+		if (player != null && !player.level().isClientSide) {
+			boolean isVanished = VANISHED_PLAYERS.contains(player.getUUID());
 
 			if (forPlayer != null)
-				return !allowedToSeePlayer(forPlayer, player, isVanished(forPlayer), isVanished);
+				return !playerAllowedToSeeOther(forPlayer, player, isVanished(forPlayer), isVanished);
 
 			return isVanished;
 		}
@@ -35,19 +53,11 @@ public class VanishUtil {
 		return false;
 	}
 
-	public static List<? extends Entity> removeVanishedFromEntityList(List<? extends Entity> rawList, Entity forPlayer) {
-		return rawList.stream().filter(entity -> !(entity instanceof Player player) || !isVanished(player, forPlayer)).collect(Collectors.toList());
-	}
-
-	public static <T extends Player> List<T> removeVanishedFromPlayerList(List<T> rawList, Entity forPlayer) {
-		return rawList.stream().filter(player -> !isVanished(player, forPlayer)).collect(Collectors.toList());
-	}
-
-	public static boolean allowedToSeePlayer(Entity player, Entity otherPlayer, boolean isVanished, boolean isOtherVanished) {
-		if (player.equals(otherPlayer)) //All players should be able to see each other
+	public static boolean playerAllowedToSeeOther(Entity subject, Entity otherPlayer, boolean isSubjectVanished, boolean isOtherVanished) {
+		if (subject.equals(otherPlayer)) //All players should be able to see each other
 			return true;
 
-		return !isOtherVanished || canSeeAllVanishedPlayers(player, isVanished) || checkTeamVisibility(player, otherPlayer);
+		return !isOtherVanished || canSeeAllVanishedPlayers(subject, isSubjectVanished) || checkTeamVisibility(subject, otherPlayer);
 	}
 
 	public static boolean canSeeAllVanishedPlayers(Entity entity, boolean isVanished) {
@@ -64,6 +74,27 @@ public class VanishUtil {
 		Team team = player.getTeam();
 
 		return team != null && team.canSeeFriendlyInvisibles() && team.getPlayers().contains(otherPlayer.getScoreboardName());
+	}
+
+	public static void recheckVanished(ServerPlayer player) {
+		boolean isMarkedVanished = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG).getBoolean("Vanished");
+
+		if (isMarkedVanished != isVanished(player))
+			VanishingHandler.updateVanishedStatus(player, isMarkedVanished);
+	}
+
+	public static List<? extends Entity> removeVanishedFromEntityList(List<? extends Entity> rawList, Entity forPlayer) {
+		if (VANISHED_PLAYERS.isEmpty())
+			return rawList;
+
+		return rawList.stream().filter(entity -> !(entity instanceof Player player) || !isVanished(player, forPlayer)).collect(Collectors.toList());
+	}
+
+	public static <T extends Player> List<T> removeVanishedFromPlayerList(List<T> rawList, Entity forPlayer) {
+		if (VANISHED_PLAYERS.isEmpty())
+			return rawList;
+
+		return rawList.stream().filter(player -> !isVanished(player, forPlayer)).collect(Collectors.toList());
 	}
 
 	public static MutableComponent getVanishedStatusText(ServerPlayer player, boolean isVanished) {
