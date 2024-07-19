@@ -16,9 +16,11 @@
 		"gui.ServerStatusPacketListenerImplMixin",
 		"sound.EntityMixin",
 		"world.ChunkMapTrackedEntityMixin",
+		"world.EntityGetterMixin",
 		"world.LivingEntityMixin",
 		"world.PlayerMixin",
-		"world.SleepStatusMixin"
+		"world.SleepStatusMixin",
+		"world.TrialSpawnerLevelEntitySelectorMixin"
 	],
 	"minVersion": "0.8"
 }

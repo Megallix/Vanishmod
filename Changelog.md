@@ -4,6 +4,8 @@
 - Added tracing, which is a debug functionality that reports any event caused by you that has been concealed for other players
 - Added sound suppressing for projectiles owned by a vanished player
 - Fixed the vanish command feedback message being able to reveal to admins that a player has vanished
+- Fixed vanished players being able to trigger mob spawners and natural mob spawning
+- Fixed vanished players attracting experience orbs
 
 -----------Changelog for v1.1.16-----------
 

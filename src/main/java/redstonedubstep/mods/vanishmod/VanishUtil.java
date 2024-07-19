@@ -39,7 +39,7 @@ public class VanishUtil {
 		return rawList.stream().filter(entity -> !(entity instanceof Player player) || !isVanished(player, forPlayer)).collect(Collectors.toList());
 	}
 
-	public static List<ServerPlayer> removeVanishedFromPlayerList(List<ServerPlayer> rawList, Entity forPlayer) {
+	public static <T extends Player> List<T> removeVanishedFromPlayerList(List<T> rawList, Entity forPlayer) {
 		return rawList.stream().filter(player -> !isVanished(player, forPlayer)).collect(Collectors.toList());
 	}
 
