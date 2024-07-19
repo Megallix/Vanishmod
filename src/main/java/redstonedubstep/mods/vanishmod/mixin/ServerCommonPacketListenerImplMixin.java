@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import net.minecraft.core.Holder;
 import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -27,12 +28,16 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import redstonedubstep.mods.vanishmod.VanishConfig;
 import redstonedubstep.mods.vanishmod.VanishUtil;
 import redstonedubstep.mods.vanishmod.misc.FieldHolder;
 import redstonedubstep.mods.vanishmod.misc.SoundSuppressionHelper;
+import redstonedubstep.mods.vanishmod.misc.TraceHandler;
 
 @Mixin(ServerCommonPacketListenerImpl.class)
 public class ServerCommonPacketListenerImplMixin {
@@ -47,29 +52,66 @@ public class ServerCommonPacketListenerImplMixin {
 	@Inject(method = "send(Lnet/minecraft/network/protocol/Packet;)V", at = @At("HEAD"), cancellable = true)
 	private void vanishmod$onSendPacket(Packet<?> packet, CallbackInfo callbackInfo) {
 		if ((Object)this instanceof ServerGamePacketListenerImpl listener) {
-			ServerPlayer player = listener.player;
+			ServerPlayer receivingPlayer = listener.player;
+			Level level = receivingPlayer.level();
 
 			if (packet instanceof ClientboundPlayerInfoUpdatePacket infoPacket) {
-				List<ClientboundPlayerInfoUpdatePacket.Entry> filteredPacketEntries = infoPacket.entries().stream().filter(e -> !VanishUtil.isVanished(server.getPlayerList().getPlayer(e.profileId()), player)).toList();
+				List<ClientboundPlayerInfoUpdatePacket.Entry> filteredPacketEntries = infoPacket.entries().stream().filter(e -> !VanishUtil.isVanished(server.getPlayerList().getPlayer(e.profileId()), receivingPlayer)).toList();
 
 				if (filteredPacketEntries.isEmpty())
 					callbackInfo.cancel();
 				else if (!filteredPacketEntries.equals(infoPacket.entries()))
 					infoPacket.entries = filteredPacketEntries;
 			}
-			else if (packet instanceof ClientboundTakeItemEntityPacket pickupPacket && VanishUtil.isVanished(player.level().getEntity(pickupPacket.getPlayerId()), player))
+			else if (packet instanceof ClientboundTakeItemEntityPacket pickupPacket && level.getEntity(pickupPacket.getPlayerId()) instanceof ServerPlayer pickUppingPlayer && VanishUtil.isVanished(pickUppingPlayer, receivingPlayer)) {
+				TraceHandler.trace(pickUppingPlayer, "Pickup Animation", pickupPacket.getItemId() + "x" + pickupPacket.getAmount());
 				callbackInfo.cancel();
+			}
 			else if (VanishConfig.CONFIG.hidePlayersFromWorld.get()) {
-				if (packet instanceof ClientboundSoundPacket soundPacket && SoundSuppressionHelper.shouldSuppressSoundEventFor(SoundSuppressionHelper.getPlayerForPacket(soundPacket), player.level(), soundPacket.getX(), soundPacket.getY(), soundPacket.getZ(), player))
+				Holder<SoundEvent> suppressedSound = null;
+				Player vanishedIndirectCause = null;
+
+				if (packet instanceof ClientboundSoundPacket soundPacket) {
+					vanishedIndirectCause = SoundSuppressionHelper.getIndirectVanishedSoundCause(SoundSuppressionHelper.getPlayerForPacket(soundPacket), level, soundPacket.getX(), soundPacket.getY(), soundPacket.getZ(), receivingPlayer);
+
+					if (vanishedIndirectCause != null)
+						suppressedSound = soundPacket.getSound();
+				}
+				else if (packet instanceof ClientboundSoundEntityPacket soundPacket) {
+					vanishedIndirectCause = SoundSuppressionHelper.getIndirectVanishedSoundCause(SoundSuppressionHelper.getPlayerForPacket(soundPacket), level, level.getEntity(soundPacket.getId()), receivingPlayer);
+
+					if (vanishedIndirectCause != null)
+						suppressedSound = soundPacket.getSound();
+				}
+				else if (packet instanceof ClientboundLevelEventPacket soundPacket) {
+					vanishedIndirectCause = SoundSuppressionHelper.getIndirectVanishedSoundCause(SoundSuppressionHelper.getPlayerForPacket(soundPacket), level, Vec3.atCenterOf(soundPacket.getPos()), receivingPlayer);
+
+					if (vanishedIndirectCause != null) {
+						TraceHandler.trace(vanishedIndirectCause, "Level Event", soundPacket.getType() + "/" + soundPacket.getData());
+						callbackInfo.cancel();
+					}
+				}
+				else if (packet instanceof ClientboundBlockEventPacket eventPacket) {
+					vanishedIndirectCause = SoundSuppressionHelper.getIndirectVanishedSoundCause(null, level, Vec3.atCenterOf(eventPacket.getPos()), receivingPlayer);
+
+					if (vanishedIndirectCause != null) {
+						TraceHandler.trace(vanishedIndirectCause, "Block Event", eventPacket.getBlock().getName().getString() + "/" + eventPacket.getB0() + "/" + eventPacket.getB1());
+						callbackInfo.cancel();
+					}
+				}
+				else if (packet instanceof ClientboundLevelParticlesPacket particlesPacket){
+					vanishedIndirectCause = SoundSuppressionHelper.getIndirectVanishedParticleCause(null, level, particlesPacket.getX(), particlesPacket.getY(), particlesPacket.getZ(), receivingPlayer);
+
+					if (vanishedIndirectCause != null) {
+						TraceHandler.trace(vanishedIndirectCause, "Particle", particlesPacket.getParticle().getClass().getSimpleName());
+						callbackInfo.cancel();
+					}
+				}
+
+				if (suppressedSound != null) {
+					TraceHandler.trace(vanishedIndirectCause, "Sound", suppressedSound.value().getLocation().toString());
 					callbackInfo.cancel();
-				else if (packet instanceof ClientboundSoundEntityPacket soundPacket && SoundSuppressionHelper.shouldSuppressSoundEventFor(SoundSuppressionHelper.getPlayerForPacket(soundPacket), player.level(), player.level().getEntity(soundPacket.getId()), player))
-					callbackInfo.cancel();
-				else if (packet instanceof ClientboundLevelEventPacket soundPacket && SoundSuppressionHelper.shouldSuppressSoundEventFor(SoundSuppressionHelper.getPlayerForPacket(soundPacket), player.level(), Vec3.atCenterOf(soundPacket.getPos()), player))
-					callbackInfo.cancel();
-				else if (packet instanceof ClientboundBlockEventPacket eventPacket && SoundSuppressionHelper.shouldSuppressSoundEventFor(null, player.level(), Vec3.atCenterOf(eventPacket.getPos()), player))
-					callbackInfo.cancel();
-				else if (packet instanceof ClientboundLevelParticlesPacket particlesPacket && SoundSuppressionHelper.shouldSuppressParticlesFor(null, player.level(), particlesPacket.getX(), particlesPacket.getY(), particlesPacket.getZ(), player))
-					callbackInfo.cancel();
+				}
 			}
 		}
 	}
@@ -95,8 +137,11 @@ public class ServerCommonPacketListenerImplMixin {
 			else if (key.startsWith("multiplayer.player.left") || key.startsWith("death.") || key.startsWith("chat.type.advancement.") || key.startsWith("chat.type.admin")) {
 				if (content.getArgs()[0] instanceof Component playerName) {
 					for (ServerPlayer sender : vanishedPlayers) {
-						if (sender.getDisplayName().getString().equals(playerName.getString()))
+						if (sender.getDisplayName().getString().equals(playerName.getString())) {
+							TraceHandler.trace(sender, "Announcement", component.getString());
 							callbackInfo.cancel();
+							return;
+						}
 					}
 				}
 			}
@@ -107,6 +152,7 @@ public class ServerCommonPacketListenerImplMixin {
 
 						for (ServerPlayer vanishedPlayer : vanishedPlayers) {
 							if (vanishedPlayer.getDisplayName().getString().equals(potentialPlayerName)) {
+								TraceHandler.trace(vanishedPlayer, "Mentioning Message", component.getString());
 								callbackInfo.cancel();
 								return;
 							}

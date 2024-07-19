@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import redstonedubstep.mods.vanishmod.VanishConfig;
 import redstonedubstep.mods.vanishmod.VanishUtil;
+import redstonedubstep.mods.vanishmod.misc.TraceHandler;
 
 @Mixin(ServerPlayer.class)
 public abstract class ServerPlayerMixin extends Player {
@@ -46,12 +47,17 @@ public abstract class ServerPlayerMixin extends Player {
 
 			if (VanishUtil.isVanished(sender, this)) {
 				if (!VanishConfig.CONFIG.hideChatMessages.get() || (chatTypeKey != ChatType.CHAT && chatTypeKey != ChatType.TEAM_MSG_COMMAND_INCOMING)) {
-					if (VanishConfig.CONFIG.hidePlayerNameInChat.get())
+					if (VanishConfig.CONFIG.hidePlayerNameInChat.get()) {
+						TraceHandler.trace(sender, "Chat Message Sender (now \"vanished\")", message.content().getString());
 						chatType = ChatType.bind(chatTypeKey, level().registryAccess(), Component.literal("vanished").withStyle(ChatFormatting.GRAY));
+					}
 
 					sendSystemMessage(chatType.decorate(playerChatMessage.content()));
+					callback.cancel();
+					return;
 				}
 
+				TraceHandler.trace(sender, "Chat Message", message.content().getString());
 				callback.cancel();
 			}
 		}

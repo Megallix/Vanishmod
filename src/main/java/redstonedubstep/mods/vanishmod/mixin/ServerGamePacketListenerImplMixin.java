@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import redstonedubstep.mods.vanishmod.misc.FieldHolder;
+import redstonedubstep.mods.vanishmod.misc.TraceHandler;
 
 @Mixin(value = ServerGamePacketListenerImpl.class, priority = 1200) //Lower priority to ensure that the injectors of this mixin are run after other mixins in this class; particularly important for vanishmod$onFinishDisconnect, which needs to be the last method called
 public class ServerGamePacketListenerImplMixin {
@@ -26,5 +27,6 @@ public class ServerGamePacketListenerImplMixin {
 	@Inject(method = "onDisconnect", at = @At("TAIL"))
 	private void vanishmod$onFinishDisconnect(Component reason, CallbackInfo callbackInfo) {
 		FieldHolder.leavingPlayer = null;
+		TraceHandler.setTracing(player, false);
 	}
 }

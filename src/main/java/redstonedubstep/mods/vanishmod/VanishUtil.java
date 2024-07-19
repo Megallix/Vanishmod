@@ -1,9 +1,6 @@
 package redstonedubstep.mods.vanishmod;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import net.minecraft.ChatFormatting;
@@ -20,7 +17,6 @@ import net.minecraft.world.scores.Team;
 
 public class VanishUtil {
 	public static final MutableComponent VANISHMOD_PREFIX = Component.literal("").append(Component.literal("[").withStyle(ChatFormatting.WHITE)).append(Component.literal("Vanishmod").withStyle(s -> s.applyFormat(ChatFormatting.GRAY).withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.curseforge.com/minecraft/mc-mods/vanishmod")))).append(Component.literal("] ").withStyle(ChatFormatting.WHITE));
-	private static final Set<UUID> tracingPlayers = new HashSet<>();
 
 	public static boolean isVanished(Entity player) {
 		return isVanished(player, null);

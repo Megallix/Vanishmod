@@ -22,6 +22,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import redstonedubstep.mods.vanishmod.compat.Mc2DiscordCompat;
 import redstonedubstep.mods.vanishmod.misc.FieldHolder;
 import redstonedubstep.mods.vanishmod.misc.SoundSuppressionHelper;
+import redstonedubstep.mods.vanishmod.misc.TraceHandler;
 
 @EventBusSubscriber(modid = Vanishmod.MODID)
 public class VanishEventListener {
@@ -51,6 +52,9 @@ public class VanishEventListener {
 				if (isVanished != Mc2DiscordCompat.isHidden(player))
 					Mc2DiscordCompat.hidePlayer(player, isVanished);
 			}
+
+			if (player.level().getGameTime() % 20 == 0) //We post the trace notifications once per second, to not make them too overwhelming (in case some mod spams a message)
+				TraceHandler.sendTraceEntries(player);
 		}
 	}
 
