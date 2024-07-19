@@ -1,6 +1,7 @@
 package redstonedubstep.mods.vanishmod.misc;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -48,6 +49,12 @@ public class TraceHandler {
 		if (permissionString.isEmpty())
 			permissionString += "Only yourself";
 
+		MutableComponent visibleForComponent = Component.literal("# §nPlayers permitted to see you§r: " + permissionString + " ");
+		List<Component> visibleForPlayerNames = player.server.getPlayerList().getPlayers().stream().filter(p -> p != player && !VanishUtil.isVanished(player, p)).map(Player::getDisplayName).toList();
+
+		if (!visibleForPlayerNames.isEmpty())
+			visibleForComponent.append(Component.literal("§7(...)").withStyle(s -> s.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Currently: ").append(ComponentUtils.formatList(visibleForPlayerNames, ComponentUtils.DEFAULT_SEPARATOR))))));
+
 		player.sendSystemMessage(Component.literal("# §nTrace Status§r:"));
 		player.sendSystemMessage(Component.literal("# §bAlways enabled§r: ").append(Component.literal("§7(...)").withStyle(s -> s.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Hiding from the tab list, hiding your skin, hiding join/leave/death/advancement/command feedback messages"))))));
 		player.sendSystemMessage(getTracePrefix(VanishConfig.CONFIG.hidePlayersFromWorld.get()).append("Hiding from the world, like through suppressing sounds and particles"));
@@ -55,7 +62,7 @@ public class TraceHandler {
 		player.sendSystemMessage(getTracePrefix(VanishConfig.CONFIG.disableCommandTargeting.get()).append("Hiding from player selectors in commands, like the /give command"));
 		player.sendSystemMessage(getTracePrefix(VanishConfig.CONFIG.hideChatMessages.get()).append("Hiding chat and /teammsg messages"));
 		player.sendSystemMessage(getTracePrefix(VanishConfig.CONFIG.hidePlayerNameInChat.get()).append("Hiding your player name in /say, /me and /msg messages, replacing it with \"§7vanished§r\""));
-		player.sendSystemMessage(Component.literal("# §nPlayers permitted to see you§r: " + permissionString));
+		player.sendSystemMessage(visibleForComponent);
 	}
 
 	private static MutableComponent getTracePrefix(boolean enabled) {
