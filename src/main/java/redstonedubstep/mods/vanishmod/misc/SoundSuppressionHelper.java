@@ -150,14 +150,14 @@ public class SoundSuppressionHelper {
 		List<Entity> projectiles = level.getEntities((Entity) null, soundArea, e -> e instanceof Projectile);
 
 		if (!projectiles.isEmpty())
-			return vanishedPlayersAndHitResults.keySet().stream().filter(p -> p.level().equals(level) && p.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && VanishUtil.isVanished(p, forPlayer) && projectiles.stream().anyMatch(proj -> ((Projectile) proj).getOwner().equals(p))).findFirst().orElse(null);
+			return vanishedPlayersAndHitResults.keySet().stream().filter(p -> p.level().equals(level) && p.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && VanishUtil.isVanished(p, forPlayer) && projectiles.stream().anyMatch(proj -> p.equals(((Projectile) proj).getOwner()))).findFirst().orElse(null);
 
 		return null;
 	}
 
 	public static Player getVanishedProjectileOwner(Entity entity, Player forPlayer) {
 		if (entity instanceof Projectile projectile)
-			return vanishedPlayersAndHitResults.keySet().stream().filter(p -> p.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && VanishUtil.isVanished(p, forPlayer) && projectile.getOwner().equals(p)).findFirst().orElse(null);
+			return vanishedPlayersAndHitResults.keySet().stream().filter(p -> p.gameMode.getGameModeForPlayer() != GameType.SPECTATOR && VanishUtil.isVanished(p, forPlayer) && p.equals(projectile.getOwner())).findFirst().orElse(null);
 
 		return null;
 	}
