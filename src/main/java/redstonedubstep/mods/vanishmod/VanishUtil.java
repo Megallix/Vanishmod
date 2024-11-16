@@ -102,6 +102,6 @@ public class VanishUtil {
 	}
 
 	public static ResourceKey<ChatType> getChatTypeRegistryKey(ChatType.Bound chatType, Player player) {
-		return player.level().registryAccess().registryOrThrow(Registries.CHAT_TYPE).getResourceKey(chatType.chatType().value()).orElse(ChatType.CHAT);
+		return player.level().registryAccess().lookupOrThrow(Registries.CHAT_TYPE).getResourceKey(chatType.chatType().value()).orElse(ChatType.CHAT);
 	}
 }

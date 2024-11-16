@@ -109,7 +109,7 @@ public class ServerCommonPacketListenerImplMixin {
 				}
 
 				if (suppressedSound != null) {
-					TraceHandler.trace(vanishedIndirectCause, "Sound", suppressedSound.value().getLocation().toString());
+					TraceHandler.trace(vanishedIndirectCause, "Sound", suppressedSound.value().location().toString());
 					callbackInfo.cancel();
 				}
 			}

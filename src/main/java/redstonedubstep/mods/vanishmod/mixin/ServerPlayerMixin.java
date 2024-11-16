@@ -31,6 +31,9 @@ public abstract class ServerPlayerMixin extends Player {
 	@Final
 	public MinecraftServer server;
 
+	@Shadow
+	public abstract void sendSystemMessage(Component component);
+
 	//player entity needs a constructor, so here we go
 	public ServerPlayerMixin(Level world, BlockPos pos, float angle, GameProfile gameProfile) {
 		super(world, pos, angle, gameProfile);
