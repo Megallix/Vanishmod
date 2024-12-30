@@ -57,10 +57,10 @@ public class VanishConfig {
 					.define("hidePlayerNameInChat", false);
 			sendFakeJoinLeaveMessages = builder
 					.comment("Should players see a fake join/leave message in their chat when another player (un-)vanishes?")
-					.define("sendFakeJoinLeaveMessages", true);
+					.define("sendFakeJoinLeaveMessages", false);
 			fixPlayerDetectionModCompatibility = builder
 					.comment("Should there be a (potential) fix for other mods uncovering the presence of vanished players? This may severely increase CPU usage and is thus not recommended")
-					.define("fixPlayerDetectionModCompatibility", false);
+					.define("fixPlayerDetectionModCompatibility", true);
 			removeModdedSystemMessageReferences = builder
 					.comment("Should this mod unconditionally and strictly remove (mostly) all references of names of vanished players by system messages added by mods? This is experimental, disable the config if too many modded messages get removed. Vanilla messages mentioning vanished players, such as death and advancement messages, will be removed regardless of this config's state.")
 					.define("removeModdedSystemMessageReferences", true);
@@ -72,33 +72,33 @@ public class VanishConfig {
 					.define("seeVanishedTeamPlayers", false);
 			indirectSoundSuppression = builder
 					.comment("Should this mod try to detect and suppress sounds that are indirectly caused by vanished players (e.g. pressing a button or hitting an entity)? This detection might accidentally suppress a few sounds unrelated to vanished players, disable this detection if too many sound bugs occur")
-					.define("indirectSoundSuppression", true);
+					.define("indirectSoundSuppression", false);
 			indirectParticleSuppression = builder
 					.comment("Should this mod try to detect and suppress particles that are indirectly caused by vanished players (e.g. eating or block breaking particles)? This detection might accidentally suppress particles unrelated to vanished players, disable this detection if too many visual bugs occur")
-					.define("indirectParticleSuppression", true);
+					.define("indirectParticleSuppression", false);
 			forceSyncHiddenList = builder
 					.comment("Should the \"Hidden Players\" list from mc2discord be constantly synched with a player's vanished status? (This might lead to worse performance)")
 					.define("forceSyncHiddenList", false);
 
 			vanishCommandPermissionLevel = builder
 					.comment("What op permission level should be the requirement for being able to execute /vanish? (A value of 2 or lower allows command blocks to execute /vanish)")
-					.defineInRange("vanishCommandPermissionLevel", 2, 0, 4);
+					.defineInRange("vanishCommandPermissionLevel", 0, 0, 4);
 			seeVanishedPermissionLevel = builder
 					.comment("What op permission level should be the requirement for being able to see vanished players, no matter if the player with that permission level is vanished or not? A value of -1 disables this feature.")
 					.defineInRange("seeVanishedPermissionLevel", -1, -1, 4);
 
 			onVanishMessage = builder
 					.comment("What message should a player receive when they vanish? (%s will get replaced with the name of the vanishing player)")
-					.define("onVanishMessage", "%s vanished");
+					.define("onVanishMessage", "");
 			onUnvanishMessage = builder
 					.comment("What message should a player receive when they unvanish? (%s will get replaced with the name of the unvanishing player)")
-					.define("onUnvanishMessage", "%s unvanished");
+					.define("onUnvanishMessage", "");
 			onVanishQuery = builder
 					.comment("What message should a player receive if they query the vanished status of a vanished player? (%s will get replaced with the name of the player that the status is queried of)")
-					.define("onVanishQuery", "%s is currently vanished.");
+					.define("onVanishQuery", "");
 			onUnvanishQuery = builder
 					.comment("What message should a player receive if they query the vanished status of a visible player? (%s will get replaced with the name of the player that the status is queried of)")
-					.define("onUnvanishQuery", "%s is currently not vanished.");
+					.define("onUnvanishQuery", "");
 		}
 	}
 }
